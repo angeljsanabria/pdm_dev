@@ -126,7 +126,7 @@ int main(void)
 #ifdef PUNTO_3
 		if(tout){
 			tout = false;
-			if(repeat >= REPEAT_MAX){
+			if(repeat >= (REPEAT_MAX*2)){		// *2 por encendido y apagado
 				repeat = 0;
 				if(patrones >= PATRONES_MAX){
 					patrones = 0;

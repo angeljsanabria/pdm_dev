@@ -27,7 +27,7 @@
 /**
  * @brief Descomentar #define PUNTO_3 para habilitar la feature del punto 3.
  */
-//#define PUNTO_3
+#define PUNTO_3
 
 #ifdef PUNTO_3
 #define REPEAT_MAX 5
@@ -112,6 +112,7 @@ int main(void)
 	printf("INICIADO \r\n");
 
 	delay_t	delayL1 = {0};
+	bool tout = true;		// indica un timeout de delay
 
 	delayInit(&delayL1, delayTicks_100ms);
 #ifdef PUNTO_3
@@ -123,17 +124,21 @@ int main(void)
 	while (1)
 	{
 #ifdef PUNTO_3
-		if(repeat >= REPEAT_MAX){
-			if(patrones >= PATRONES_MAX){
-				patrones = 0;
+		if(tout){
+			tout = false;
+			if(repeat >= REPEAT_MAX){
+				repeat = 0;
+				if(patrones >= PATRONES_MAX){
+					patrones = 0;
+				}
+				delayWrite(&delayL1, arrDelays[patrones]);
+				patrones++;
 			}
-			delayWrite(&delayL1, arrDelays[patrones]);
-			patrones++;
+			repeat++;
 		}
-
-		repeat++;
 #endif
 		if(delayRead(&delayL1)){
+			tout = true;
 			BSP_LED_Toggle(BSP_LED2);
 		}
 

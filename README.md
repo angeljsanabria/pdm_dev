@@ -33,3 +33,10 @@ mas comodo.
 ### Practica 2 (entregable)
 
 - Se incluyo un #define PUNTO_3 para habilitar la feature opcional
+
+### Practica 3 (entregable)
+
+- Se implmento un driver/APIU de delay no bloqueante
+- Estructura:
+  - `Drivers/API/inc/API_delay.h`: interfaz del modulo
+  - `Drivers/API/src/API_delay.c`: implementacion del delay no bloqueante

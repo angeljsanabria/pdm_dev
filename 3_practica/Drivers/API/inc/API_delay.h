@@ -47,9 +47,9 @@ bool_t delayRead( delay_t * delay );
 void delayWrite( delay_t * delay, tick_t duration );
 
 /**
- * @brief
- * @param
- * @param
+ * @brief Devuelve si el delay existente esta corriendo
+ * @param delay Puntero a la estructura de delay.
+ * @return bool_t Retorna true si el delay esta corriendo, false en caso contrario.
  */
 bool_t delayIsRunning(delay_t * delay);
 

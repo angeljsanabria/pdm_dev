@@ -25,14 +25,11 @@
 #include "API_delay.h"
 
 /**
- * @brief Descomentar #define PUNTO_3 para habilitar la feature del punto 3.
+ * @brief Definiciones de patrones y repeticiones de cada uno
  */
-#define PUNTO_3
-
-#ifdef PUNTO_3
-#define REPEAT_MAX 1
 #define PATRONES_MAX 4
-#endif
+#define REPEAT_MAX 1
+
 
 
 int _write(int le, char *ptr, int len)
@@ -88,32 +85,31 @@ int main(void)
 	bool tout = true;		// indica un timeout de delay
 
 	delayInit(&delayL1, delayTicks_1);
-#ifdef PUNTO_3
+
 	uint8_t repeat = REPEAT_MAX;
 	uint8_t patrones = PATRONES_MAX;
 	//const tick_t  arrDelays[PATRONES_MAX] = {delayTicks_1s, delayTicks_200ms, delayTicks_100ms};
-	const uint32_t arrDelays[PATRONES_MAX] = {delayTicks_1*10, delayTicks_2*10, delayTicks_3*10, delayTicks_4*10};
-#endif
+	const uint32_t arrDelays[PATRONES_MAX] = {delayTicks_1, delayTicks_2, delayTicks_3, delayTicks_4};
+
 
 	while (1)
 	{
-#ifdef PUNTO_3
-		if(tout){
-			tout = false;
-			if(repeat >= (REPEAT_MAX*2)){		// *2 por encendido y apagado
-				repeat = 0;
-				if(patrones >= PATRONES_MAX){
-					patrones = 0;
-				}
+		if(!delayIsRunning(&delayL1)){
+			if(tout){
+				tout = false;
+				if(repeat >= (REPEAT_MAX*2)){		// *2 por encendido y apagado
+					repeat = 0;
+					if(patrones >= PATRONES_MAX){
+						patrones = 0;
+					}
 
-				if(!delayIsRunning(&delayL1)){
 					delayWrite(&delayL1, arrDelays[patrones]);
 					patrones++;
 				}
+				repeat++;
 			}
-			repeat++;
 		}
-#endif
+
 		if(delayRead(&delayL1)){
 			tout = true;
 			BSP_LED_Toggle(BSP_LED2);

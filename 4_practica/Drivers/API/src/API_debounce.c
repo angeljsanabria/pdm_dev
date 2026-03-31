@@ -19,37 +19,38 @@ typedef enum{
 } debounceState_t;
 
 
-static debounceState_t estadoActual = 0;
+static debounceState_t estadoActual;
 static bool_t isPress;
 static delay_t	delayFSM = {0};
-static bool_t changeLed;
 
 
+static void setIsPress(bool_t v)
+{
+	isPress = v;
+}
 
-bool_t readKey(void){
-	isPress = BSP_Button_Read();
 
-	bool_t aux = isPress;
-
-	if(isPress){
+bool_t readKey(void)
+{
+	bool_t out = isPress;
+	if (isPress) {
 		isPress = false;
 	}
-
-	return aux;
+	return out;
 }
 
 
 void debounceFSM_init(void){
 
 	estadoActual = BUTTON_UP;
-	changeLed = false;
+	isPress = false;
 	delayInit(&delayFSM, DELAY_DEBOUNCE);
 
 }
 
 
 void debounceFSM_update(void){
-	// Leer la entrada
+
 	switch (estadoActual) {
 		case BUTTON_UP:
 			// Condicion de cambio;
@@ -61,11 +62,12 @@ void debounceFSM_update(void){
 
 		break;
 		case BUTTON_FALLING:
-
+			// Condiciones de cambio;
 			if(delayRead(&delayFSM)){
-
 				if (BSP_Button_Read()){
 					estadoActual = BUTTON_DOWN;
+					setIsPress(true);
+					buttonPressed();
 				}else{
 					estadoActual = BUTTON_UP;
 				}
@@ -82,29 +84,21 @@ void debounceFSM_update(void){
 		break;
 
 		case BUTTON_RISING:
+			// Condiciones de cambio;
 			if(delayRead(&delayFSM)){
-
 				if (BSP_Button_Read()){
-					estadoActual = BUTTON_UP;
-					if(isPress){
-						//isPress = false;
-						// usar el setter
-						// setear el periodo a 500ms
-					}
-					else{
-						//isPress = true;
-						// usar el setter
-						// setear el periodo a 100ms
-					}
-				}else{
 					estadoActual = BUTTON_DOWN;
+				}else{
+					estadoActual = BUTTON_UP;
+					setIsPress(false);
+					buttonReleased();
 				}
 			}
 		break;
 
 		default:
 			estadoActual = BUTTON_UP;
-
+			break;
 	}
-
+	return;
 }

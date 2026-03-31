@@ -58,19 +58,6 @@ enum delayTicksMs{
 };
 
 
-/**
- * @brief
- * @param
- * @param
- */
-void buttonPressed();			// debe encender el LED
-
-/**
- * @brief
- * @param
- * @param
- */
-void buttonReleased();			// debe apagar el LED
 
 /**
   * @brief  The application entry point.
@@ -100,7 +87,6 @@ int main(void)
 	uint8_t ptrD = 0;
 	delayInit(&delayL1, wDelay[ptrD]);
 
-
 	debounceFSM_init();
 
 
@@ -108,13 +94,9 @@ int main(void)
 	{
 		debounceFSM_update();
 
-
-		if(1){
-			if (ptrD){
-				ptrD = 0;
-			}else{
-				ptrD = 1;
-			}
+		if(readKey()){						// Si se detecto un evento, cambio el tipo de delay
+			if (ptrD)	ptrD = 0;
+			else		ptrD = 1;
 
 			delayWrite(&delayL1, wDelay[ptrD]);
 		}
@@ -129,12 +111,19 @@ int main(void)
 }
 
 
-void buttonPressed(){
-
+// Estas funciones estan definidas en API_debounce.h
+// Funcionamiento tipo CallBack
+void buttonPressed(void)
+{
+	BSP_LED_On(BSP_LED3);
+  return;
 }
 
-void buttonReleased(){
 
+void buttonReleased(void)
+{
+	BSP_LED_Off(BSP_LED3);
+  return;
 }
 
 /**

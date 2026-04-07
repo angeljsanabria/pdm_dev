@@ -11,6 +11,7 @@
 #include "bsp.h"
 #include "bsp_leds.h"
 #include "bsp_button.h"
+#include "bsp_uart3.h"
 
 /* Private typedef -----------------------------------------------------------*/
 
@@ -39,6 +40,8 @@ void BSP_Init(void)
 
     /* Initialize Button */
     BSP_Button_Init();
+
+    BSP_USART3_Init();
 
     /* Add other board initialization here if needed */
 }

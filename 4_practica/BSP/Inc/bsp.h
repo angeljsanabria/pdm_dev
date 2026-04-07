@@ -18,6 +18,7 @@ extern "C" {
 #include "stm32l4xx_hal.h"
 #include "bsp_leds.h"
 #include "bsp_button.h"
+#include "bsp_uart3.h"
 
 /* Exported types ------------------------------------------------------------*/
 

@@ -5,6 +5,7 @@
  *      Author: angel-dev
  */
 #include "API_pn532.h"
+#include <stdio.h>
 #include <string.h>
 #include "API_i2c_1.h"
 
@@ -268,7 +269,7 @@ PN532_Status_t PN532_polling_send(void)
 }
 
 
-PN532_Status_t PN532_save_read_uid_card(uint8_t *uid, uint8_t *len)
+PN532_Status_t PN532_save_read_uid_card(uint8_t *uid, uint8_t *len)		// Deprecado, porque copiaba en bytes.
 {
 	if ((uid == NULL) || (len == NULL)) {
 		return PN532_ERR_OTRO;
@@ -284,5 +285,48 @@ PN532_Status_t PN532_save_read_uid_card(uint8_t *uid, uint8_t *len)
 
 	*len = pn532.uid_len;
 	(void)memcpy(uid, pn532.uid, (size_t)pn532.uid_len);
+	return PN532_OK;
+}
+
+PN532_Status_t PN532_save_read_uid_hex(uint8_t *out, uint8_t out_cap)
+{
+	int w;
+
+	if (out == NULL) {
+		return PN532_ERR_OTRO;
+	}
+	if (out_cap == 0) {
+		return PN532_ERR_OTRO;
+	}
+
+	if (pn532.card_present == false) {
+		return PN532_ERR_NO_CARD;
+	}
+
+	if (pn532.uid_len > PN532_MAX_UID_BUFFER) {
+		return PN532_ERR_OTRO;
+	}
+
+	if (pn532.uid_len == 0) {
+		out[0] = '\0';
+		return PN532_OK;
+	}
+
+	if (out_cap < ((size_t)pn532.uid_len * 2)+ 1) {
+		return PN532_ERR_OTRO;
+	}
+
+	switch (pn532.uid_len) {
+		// Agregar otros si hacen falta
+		case 4:
+			w = snprintf(out, out_cap, "%02X%02X%02X%02X",(uint8_t)pn532.uid[0], (uint8_t)pn532.uid[1], (uint8_t)pn532.uid[2], (uint8_t)pn532.uid[3]);
+			break;
+		default:
+			return PN532_ERR_OTRO;
+	}
+
+	if (w < 0 || (size_t)w >= out_cap) {
+		return PN532_ERR_OTRO;
+	}
 	return PN532_OK;
 }

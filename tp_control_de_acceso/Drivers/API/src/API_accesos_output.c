@@ -76,11 +76,11 @@ static void ledVerdeOff(void)
 }
 
 
-//static void ledRojoToggle(void)
-//{
-//	BSP_LED_Toggle(BSP_LED_ROJO);
-//	return;
-//}
+static void ledRojoToggle(void)
+{
+	BSP_LED_Toggle(BSP_LED_ROJO);
+	return;
+}
 //
 //static void ledAmarilloToggle(void)
 //{
@@ -107,6 +107,10 @@ void acceso_B_abrir(void){
 
 void acceso_denegado_indicador(void){
 	ledRojoOn();
+}
+
+void acceso_error_indicador(void){
+	ledRojoToggle();
 }
 
 void acceso_cerrar_todos(void){

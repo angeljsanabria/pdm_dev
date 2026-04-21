@@ -9,6 +9,7 @@
 #define API_INC_API_PN532_H_
 #include <stdint.h>
 #include <stdbool.h>
+#include <stddef.h>
 
 typedef bool bool_t;
 
@@ -116,7 +117,15 @@ PN532_Status_t PN532_read_inlist_response(void);
 /**
   * @brief Copia el ultimo UID leido por PN532_read_inlist_response (si card_present).
   */
-PN532_Status_t PN532_save_read_uid_card(uint8_t *uid, uint8_t *len);
+//PN532_Status_t PN532_save_read_uid_card(uint8_t *uid, uint8_t *len);	// DEPRECADO por el que guarda en Char
+
+/**
+  * @brief 	Ultimo UID como texto hex ASCII mayusculas contiguo (p. ej. 4 bytes UID -> 8 caracteres + NUL).
+  * @param 	out Buffer destino (string C).
+  * @param 	out_cap Capacidad del buffer out en bytes (incluye el NUL). No es uid_len ni len_card UART.
+  * @retval PN532_OK si cabe y uid_len soportado; PN532_ERR_OTRO si buffer chico o uid_len distinto de 4.
+  */
+PN532_Status_t PN532_save_read_uid_hex(uint8_t *out, uint8_t out_cap);
 
 /**
   * @brief 	Lee y valida trama ACK (buffer interno). PN532_OK si ACK valido, error de protocolo o I2C si no.

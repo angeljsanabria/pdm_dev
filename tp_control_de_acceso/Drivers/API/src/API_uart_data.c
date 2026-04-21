@@ -7,6 +7,7 @@
 #include "API_uart_data.h"
 #include "stm32l4xx_hal.h"
 #include "bsp_uart3.h"
+#include <stdio.h>
 #include "string.h"
 
 #define TEST_UART_MSG	"INICIADO"
@@ -80,5 +81,30 @@ bool_t uartReceiveStringSize(uint8_t * pstring, uint16_t size){
 
 	if (ret != HAL_OK)	return false;
 	return true;
+}
+
+void uartSendCardToAuthorize(uint8_t *card, uint16_t size)
+{
+	char aux[32];
+	int n;
+
+	if ((card == NULL) || (size == 0) || (size >= UART_DATA_MAX_SIZE)) {
+		return;
+	}
+
+	if (size != 8) {
+		uartSendString((uint8_t *)"CARD No soportada\n");
+		return;
+	}
+
+	n = snprintf(aux, sizeof(aux),
+	    "CARD%c%c%c%c%c%c%c%c\n",
+	    (int)card[0], (int)card[1], (int)card[2], (int)card[3],
+	    (int)card[4], (int)card[5], (int)card[6], (int)card[7]);
+	if (n < 0 || (size_t)n >= sizeof(aux)) {
+		return;
+	}
+
+	HAL_UART_Transmit(&huart3, (uint8_t *)aux, (uint16_t)n, HAL_MAX_DELAY);
 }
 

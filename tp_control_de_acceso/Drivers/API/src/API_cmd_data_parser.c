@@ -5,6 +5,7 @@
  *      Author: angel-dev
  */
 #include "API_cmd_data_parser.h"
+#include "API_acceso_fsm.h"
 #include <string.h>
 
 
@@ -190,16 +191,16 @@ void cmdDataPoll(void){
 	case CMD_EXEC:
 		//
 		if(cmdDataToExe == CMD_TO_EXE_PUSH_ACCESO_A){
-			// _TODO PUSH ACCESO A
+			acceso_push_authorization(ACCESO_EXEC_ACCESO_A);
 		}
 		else if(cmdDataToExe == CMD_TO_EXE_PUSH_ACCESO_B){
-			// _TODO PUSH ACCESO A
+			acceso_push_authorization(ACCESO_EXEC_ACCESO_B);
 		}
 		else if(cmdDataToExe == CMD_TO_EXE_PUSH_NO_AUTORIZADO){
-			// _TODO PUSH NO AUTORIZADO
+			acceso_push_authorization(ACCESO_EXEC_NO_AUTORIZADO);
 		}
 		else{
-			// _TODO PUSH ERROR
+			acceso_push_authorization(ACCESO_EXEC_ERROR);
 		}
 
 

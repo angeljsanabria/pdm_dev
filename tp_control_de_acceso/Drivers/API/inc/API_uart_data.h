@@ -55,6 +55,18 @@ void uartSendStringSize(uint8_t * pstring, uint16_t size);
  */
 bool_t uartReceiveStringSize(uint8_t * pstring, uint16_t size);
 
+
+/**
+ * @brief 	Envia el formato esperado por el autorizador
+ * 			CARD%02X%02X%02X%02X\n
+ * 			(finalizar con \n)
+  * 			Si size != 8 envia "CARD No soportada\n".
+ * @param	card datos de la tarjeta (8 bytes)
+ * @param	size debe ser 8 para trama CARD; si no, mensaje de no soportada
+ */
+void uartSendCardToAuthorize(uint8_t *card, uint16_t size);
+
+
 /**
  * @brief	Mensaje de testing
  * @param

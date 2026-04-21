@@ -34,6 +34,15 @@ void acceso_B_abrir(void);
 */
 void acceso_denegado_indicador(void);
 
+
+/**
+* @brief 	Indicado de ERROR
+*
+* @param 	None
+* @retval 	None
+*/
+void acceso_error_indicador(void);
+
 /**
 * @brief 	Cierro todos los accesos
 *

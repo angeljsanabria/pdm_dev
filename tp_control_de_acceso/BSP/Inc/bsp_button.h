@@ -20,7 +20,7 @@ extern "C" {
 
 /* Exported constants --------------------------------------------------------*/
 /* Button Pin Definitions (extracted from generated project) */
-#define BSP_BUTTON_PIN          GPIO_PIN_13
+#define BSP_BUTTON_PIN          GPIO_PIN_6
 #define BSP_BUTTON_PORT         GPIOC
 
 /* Exported macro ------------------------------------------------------------*/

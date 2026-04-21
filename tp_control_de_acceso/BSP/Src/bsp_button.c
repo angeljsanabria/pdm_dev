@@ -37,7 +37,7 @@ void BSP_Button_Init(void)
     /* Configure GPIO pin : B1_Pin */
     GPIO_InitStruct.Pin = BSP_BUTTON_PIN;
     GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Pull = GPIO_PULLUP;
     HAL_GPIO_Init(BSP_BUTTON_PORT, &GPIO_InitStruct);
 }
 

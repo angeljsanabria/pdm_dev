@@ -24,7 +24,8 @@ void I2C1_Init(void)		// Pasar a la API
 
   /* USER CODE END I2C1_Init 1 */
   hi2c1.Instance = I2C1;
-  hi2c1.Init.Timing = 0x00000E14;
+  //hi2c1.Init.Timing = 0x00000E14;
+  hi2c1.Init.Timing = 0x00000F3B;
   hi2c1.Init.OwnAddress1 = 0;
   hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
   hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;

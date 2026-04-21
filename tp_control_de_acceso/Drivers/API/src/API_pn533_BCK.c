@@ -11,25 +11,8 @@
 /*
  * SAMConfiguration minima (0x14, modo Normal 0x01). Trama completa minima.
  */
-//static const uint8_t PN532_SAM_NORMAL_FRAME[] = {
-//	0x00, 0x00, 0xFF, 0x03, 0xFD, 0xD4, 0x14, 0x01, 0x17, 0x00
-//};
-static const uint8_t PN532_SAM_NORMAL_FRAME[] = {
-	PN532_PROTOCOL_PREAMBLE_FRAME_1, PN532_PROTOCOL_PREAMBLE_FRAME_2, PN532_PROTOCOL_PREAMBLE_FRAME_3,
-	0x05, 0xFB,
-	PN532_PROTOCOL_TFI_HOST_TO_PN532,
-	PN532_PROTOCOL_SAMCONFIG_BYTE_1,
-	PN532_PROTOCOL_CONFIG_POLLING,
-    0x32,                       // 100 ms
-    0x01,//0x00,                       // IRQ OFF
-    0xE4,//0xE5,                       // DCS
-    0x00
-};
 
-/*
- * Poll de lectura de tarjeta. Trama completa minima.
- * Prende la antena y espera a leer 1 tarjeta maximo. (timeout por defecto)
- */
+
 static const uint8_t PN532_POLLING_READ[] = {
 	PN532_PROTOCOL_PREAMBLE_FRAME_1, PN532_PROTOCOL_PREAMBLE_FRAME_2, PN532_PROTOCOL_PREAMBLE_FRAME_3,
     0x04, 0xFC,
@@ -38,7 +21,7 @@ static const uint8_t PN532_POLLING_READ[] = {
 	0x01, 	// 1 Sola tarjeta
 	0x00,
     0xE1,
-    0x00	// 106 kbps (ISO14443A - MIFARE - tarjetas blancas )
+    0x00	// 106 kbps (ISO14443A → MIFARE)
 };
 
 static PN532_Handler_t pn532;
@@ -71,25 +54,10 @@ PN532_Status_t PN532_read_ack(void)
 	n = 0;
 	found = 0;
 	cola_pendiente_i2c = 1;
-//	while (n < PN532_READ_ACK_BUFFER_LEN) {
-//		if (I2C1_Read(pn532.i2c_addr_hal, &buff_rx[n], 1, pn532.op_timeout_ms) != HAL_OK) {
-//			return PN532_ERR_I2C;
-//		}
-//		n++;
-//		if (n < 3) {
-//			continue;
-//		}
-//		i = (uint8_t)(n - 1);
-//		if ((buff_rx[i - 2] == PN532_PROTOCOL_PREAMBLE_FRAME_1)
-//		    && (buff_rx[i - 1] == PN532_PROTOCOL_PREAMBLE_FRAME_2)
-//		    && (buff_rx[i] == PN532_PROTOCOL_PREAMBLE_FRAME_3)) {
-//			found = 1;
-//			break;
-//		}
-//	}
-	/* Si solo hubo 0x01 byte a byte, un unico burst suele traer la trama real. */
+
+	// Devuelve varios 0x01, revisar hasta que encuentre el preambulo
 	if (found == 0) {
-		if (I2C1_Read(pn532.i2c_addr_hal, buff_rx, 7,
+		if (I2C1_Read(pn532.i2c_addr_hal, buff_rx, PN532_READ_ACK_BUFFER_LEN,
 			      pn532.op_timeout_ms) != HAL_OK) {
 			return PN532_ERR_I2C;
 		}
@@ -129,7 +97,7 @@ PN532_Status_t PN532_read_ack(void)
 	    || (buff_rx[n - 1] != PN532_PROTOCOL_ACK_FRAME_BYTE_3)) {
 		return PN532_ERR_PROTOCOL;
 	}
-
+	
 	return PN532_OK;
 }
 
@@ -146,63 +114,45 @@ static PN532_Status_t PN532_config_module_normal(void)
 }
 
 
-PN532_Status_t PN532_config_module(void)
-{
-	// Solo config de lectura tipo polling
-	return PN532_config_module_normal();
-}
-
-
 /*
  * Respuesta InListPassiveTarget desde PN532_PROTOCOL_TFI_PN532_TO_HOST
- * y comando
+ * y comando 
  */
-PN532_Status_t PN532_read_inlist_response(void)
+static PN532_Status_t pn532_read_inlist_response(void)
 {
 	uint8_t buff_rx[PN532_READ_ACK_BUFFER_LEN];
-	uint16_t p;
-	uint16_t scan;
+	uint16_t n;
+	uint8_t i;
 	uint8_t found;
+	uint16_t p;
 	uint8_t len_field;
 	uint8_t count_cards;
 	uint8_t uid_len;
 	uint16_t sum;
 	uint8_t k;
 
-	(void)memset(buff_rx, 0, sizeof(buff_rx));
-
 	if (I2C1_Read(pn532.i2c_addr_hal, buff_rx, PN532_READ_ACK_BUFFER_LEN,
 		      pn532.op_timeout_ms) != HAL_OK) {
 		return PN532_ERR_I2C;
 	}
 
-	/*
-	 * Buscar 00 00 FF de trama de datos: LEN+LCS==0x100, TFI D5, CMD 4B.
-	 * Si antes viene solo ACK (00 00 FF 00 FF 00), LEN+LCS no suma 0x100: seguir buscando.
-	 * Ejemplo valido: 01 | 00 00 FF 0C F4 D5 4B 01 01 ... (0x01 listo I2C opcional).
-	 */
 	found = 0;
-	p = 0;
-	for (scan = 0; (scan + 2) < PN532_READ_ACK_BUFFER_LEN; scan++) {
-		if ((buff_rx[scan] == PN532_PROTOCOL_PREAMBLE_FRAME_1)
-		    && (buff_rx[scan + 1] == PN532_PROTOCOL_PREAMBLE_FRAME_2)
-		    && (buff_rx[scan + 2] == PN532_PROTOCOL_PREAMBLE_FRAME_3)) {
-			if ((uint16_t)(scan + 6) >= PN532_READ_ACK_BUFFER_LEN) {
-				continue;
-			}
-			if ((uint16_t)(buff_rx[scan + 3] + buff_rx[scan + 4])
-			    != (uint16_t)PN532_PROTOCOL_LCS_16BITS_VALIDADOR) {
-				continue;
-			}
-			if ((buff_rx[scan + 5] == PN532_PROTOCOL_TFI_PN532_TO_HOST)
-			    && (buff_rx[scan + 6] == PN532_PROTOCOL_CMD_INLIST_PASSIVE)) {
-				found = 1;
-				p = scan;
-				break;
-			}
+	p = 0;count_cardscount_cardscount_cards
+	n = 0;
+	while (n < PN532_READ_ACK_BUFFER_LEN) {
+		n++;
+		if (n < 3) {
+			continue;
+		}
+		i = (uint8_t)(n - 1);
+		if ((buff_rx[i - 2] == PN532_PROTOCOL_PREAMBLE_FRAME_1)
+		    && (buff_rx[i - 1] == PN532_PROTOCOL_PREAMBLE_FRAME_2)
+		    && (buff_rx[i] == PN532_PROTOCOL_PREAMBLE_FRAME_3)) {
+			found = 1;
+			p = (uint16_t)(i - 2);
+			break;
 		}
 	}
-
 	if (found == 0) {
 		return PN532_ERR_PROTOCOL;
 	}
@@ -212,11 +162,22 @@ PN532_Status_t PN532_read_inlist_response(void)
 	}
 
 	len_field = buff_rx[p + 3];
-	/* LEN = TFI + PD0..PDn (sin DCS). DCS va despues; checksum = sum(TFI..PDn+DCS) mod 256 == 0. */
-	if ((uint16_t)(p + 5 + (uint16_t)len_field) >= PN532_READ_ACK_BUFFER_LEN) {
+	// Comprobar que el checksum es correcto LCS se elgije para que la suma sea 
+	if ((uint16_t)(buff_rx[p + 3] + buff_rx[p + 4]) != (uint16_t)PN532_PROTOCOL_LCS_16BITS_VALIDADOR) {
+		return PN532_ERR_PROTOCOL;
+	}
+	if ((uint16_t)(p + 5 + (uint16_t)len_field) > PN532_READ_ACK_BUFFER_LEN) {
 		return PN532_ERR_PROTOCOL;
 	}
 
+	if (buff_rx[p + 5] != PN532_PROTOCOL_TFI_PN532_TO_HOST) {
+		return PN532_ERR_PROTOCOL;
+	}
+	if (buff_rx[p + 6] != PN532_PROTOCOL_CMD_INLIST_PASSIVE) {
+		return PN532_ERR_PROTOCOL;
+	}
+
+	// Cantidad de tarjetas leidas
 	count_cards = buff_rx[p + 7];
 	if (count_cards == 0) {
 		pn532.card_present = false;
@@ -225,37 +186,47 @@ PN532_Status_t PN532_read_inlist_response(void)
 		return PN532_ERR_NO_CARD;
 	}
 
-	/* Tras D5 4B: NbTg, Tg, ATQA(2), SAK, longitud UID, UID (NXP / mismo mapa que Adafruit). */
-	if ((uint16_t)(p + 13) >= PN532_READ_ACK_BUFFER_LEN) {
+	if ((uint16_t)(p + 12) >= PN532_READ_ACK_BUFFER_LEN) {
 		return PN532_ERR_PROTOCOL;
 	}
 
-	uid_len = buff_rx[p + 12];
+	uid_len = buff_rx[p + 11];
 	if (uid_len == 0 || uid_len > PN532_MAX_UID_BUFFER) {
 		return PN532_ERR_PROTOCOL;
 	}
-
-	if ((uint16_t)(p + 13 + (uint16_t)uid_len) > PN532_READ_ACK_BUFFER_LEN) {
+	if ((uint16_t)(p + 12 + (uint16_t)uid_len) > PN532_READ_ACK_BUFFER_LEN) {
 		return PN532_ERR_PROTOCOL;
 	}
 
-	(void)memcpy(pn532.uid, &buff_rx[p + 13], uid_len);
+	(void)memcpy(pn532.uid, &buff_rx[p + 12], uid_len);
 	pn532.uid_len = uid_len;
 	pn532.card_present = true;
 
 	sum = 0;
-	for (k = 0; k <= len_field; k++) {
+	for (k = 0; k < len_field; k++) {
 		sum = (uint16_t)(sum + buff_rx[p + 5 + k]);
 	}
-
-	if ((sum & 0xFF) != 0) {
+	if ((sum & 0xFFU) != 0U) {
 		return PN532_ERR_PROTOCOL;
 	}
 
 	return PN532_OK;
 }
 
-PN532_Status_t PN532_polling_send(void)
+PN532_Status_t PN532_read_card_uid(uint8_t *uid, uint8_t *len)
+{
+	if ((uid == NULL) || (len == NULL)) {
+		return PN532_ERR_OTRO;
+	}
+	if (pn532.card_present == false) {
+		return PN532_ERR_NO_CARD;
+	}
+	*len = pn532.uid_len;
+	(void)memcpy(uid, pn532.uid, (size_t)pn532.uid_len);
+	return PN532_OK;
+}
+
+PN532_Status_t PN532_polling_read(void)
 {
 	if (I2C1_Write(pn532.i2c_addr_hal,
 		       (uint8_t *)PN532_POLLING_READ,
@@ -264,25 +235,35 @@ PN532_Status_t PN532_polling_send(void)
 		return PN532_ERR_I2C;
 	}
 
-	return PN532_OK;
+	return pn532_read_inlist_response();
 }
 
-
-PN532_Status_t PN532_save_read_uid_card(uint8_t *uid, uint8_t *len)
+PN532_Status_t PN532_config_module(void)
 {
-	if ((uid == NULL) || (len == NULL)) {
-		return PN532_ERR_OTRO;
-	}
-
-	if (pn532.card_present == false) {
-		return PN532_ERR_NO_CARD;
-	}
-
-	if(pn532.uid_len > PN532_MAX_UID_BUFFER){
-		return PN532_ERR_OTRO;
-	}
-
-	*len = pn532.uid_len;
-	(void)memcpy(uid, pn532.uid, (size_t)pn532.uid_len);
-	return PN532_OK;
+	// Solo config de lectura tipo polling
+	return PN532_config_module_normal();
 }
+
+
+//
+//uint8_t PN532_Read_Card(PN532_Handle *nfc, uint8_t *uid_out) {
+//    I2C1_Write(nfc->dev_addr, (uint8_t*)CMD_INLIST, sizeof(CMD_INLIST), nfc->timeout);
+//
+//    uint8_t status = 0;
+//    uint32_t start_tick = HAL_GetTick();
+//
+//    // Reemplazamos HAL_Delay por un bucle de espera activa no bloqueante
+//    // hasta que el chip esté listo o pase el timeout del dispositivo
+//    while (status != 0x01) {
+//        I2C1_Read(nfc->dev_addr, &status, 1, 10);
+//
+//        if ((HAL_GetTick() - start_tick) > nfc->timeout) {
+//            return 0; // Timeout: no hubo tarjeta o el chip no responde
+//        }
+//    }
+//
+//    // Ahora que status es 0x01, leemos la trama completa de forma segura
+//    uint8_t rx_buf[32];
+//    I2C1_Read(nfc->dev_addr, rx_buf, 32, nfc->timeout);
+//    // ... procesar UID ...
+//}

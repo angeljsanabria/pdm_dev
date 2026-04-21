@@ -13,15 +13,16 @@
 typedef bool bool_t;
 
 
-#define PN532_I2C_ADDRESS			0x24		// Una unica direccion para I2C - No configurable
-#define PN532_I2C_ADDR_SHIFT      	((uint16_t)(PN532_I2C_ADDRESS << 1))
-#define PN532_CONFIG_MODE_IN_LIST_PASSIVE_TARGET 		0x4A
+/* 7 bits segun NXP (modulos tipo Adafruit/Seed). Si tu PCB usa otro valor, medilo. */
+#define PN532_I2C_ADDRESS_7BIT		0x24
+/* HAL: direccion de hoja de datos desplazada 1 bit a la izquierda */
+#define PN532_I2C_ADDR_SHIFT		(0x24 << 1)
+#define PN532_CONFIG_MODE_IN_LIST_PASSIVE_TARGET 		0x4A	// Config InListPassiveTarget
 #define PN532_CONFIG_MODE_IN_AUTO_POLL				 	0x60
 #define PN532_CONFIG_DEFAULT_TIMEOUT				 	500 // en ms
 
 #define PN532_MAX_UID_BUFFER		10
-/* Lectura en bloque tras byte de estado (evita repetir 0x01 en cada START/STOP). */
-#define PN532_READ_ACK_BURST_LEN	32
+#define PN532_READ_ACK_BUFFER_LEN	64
 
 // DEFINICIONES DE PROTOCOLO
 #define PN532_PROTOCOL_READY_BYTE		0x01		// Seguir leyendo la trama
@@ -35,11 +36,17 @@ typedef bool bool_t;
 #define PN532_PROTOCOL_ACK_FRAME_BYTE_1	0x00		// ACK trama byte 1 de 3
 #define PN532_PROTOCOL_ACK_FRAME_BYTE_2	0xFF		// ACK trama byte 2 de 3
 #define PN532_PROTOCOL_ACK_FRAME_BYTE_3	0x00		// ACK trama byte 3 de 3
+#define PN532_PROTOCOL_SAMCONFIG_BYTE_1	0x14
+/* Modo Normal SAM (NXP 7.2.10): sin SAM en el bus; no es "polling" de tarjeta. */
+#define PN532_SAM_MODE_NORMAL			0x01
+#define PN532_PROTOCOL_CONFIG_POLLING		PN532_SAM_MODE_NORMAL
 #define PN532_PROTOCOL_TFI_HOST_TO_PN532		0xD4		// TFI - Identificado de trama host a PN532
 #define PN532_PROTOCOL_TFI_PN532_TO_HOST		0xD5		// TFI - Identificado de trama PN532 a host
 #define PN532_PROTOCOL_D5_BYTE		0xD5		// TFI de la trama
 #define PN532_PROTOCOL_15_BYTE		0x15		// Codigo de respuesta de la trama
 #define PN532_PROTOCOL_DCS_BYTE		0xFD		// Checksum de la trama
+#define PN532_PROTOCOL_CMD_INLIST_PASSIVE	0x4B  // CMD InListPassiveTarget
+#define PN532_PROTOCOL_LCS_16BITS_VALIDADOR	0x100
 
 /**
   * @brief 	estructura principal de control del modulo PN532
@@ -95,6 +102,21 @@ PN532_Status_t PN532_init_module(PN532_CONFIG_MODE_T modo);
   * @brief 	SAM Normal: camino feliz Ready -> ACK 6B -> Ready -> respuesta D5 15 00. read_mode InListPassiveTarget.
   */
 PN532_Status_t PN532_config_module(void);
+
+/**
+  * @brief Envio por I2C del comando InListPassiveTarget (sin leer respuesta).
+  */
+PN532_Status_t PN532_polling_send(void);
+
+/**
+  * @brief Lee y parsea la respuesta InListPassiveTarget (tras PN532_polling_send y espera).
+  */
+PN532_Status_t PN532_read_inlist_response(void);
+
+/**
+  * @brief Copia el ultimo UID leido por PN532_read_inlist_response (si card_present).
+  */
+PN532_Status_t PN532_save_read_uid_card(uint8_t *uid, uint8_t *len);
 
 /**
   * @brief 	Lee y valida trama ACK (buffer interno). PN532_OK si ACK valido, error de protocolo o I2C si no.

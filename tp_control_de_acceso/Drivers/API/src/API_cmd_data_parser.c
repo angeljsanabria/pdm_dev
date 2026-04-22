@@ -14,7 +14,7 @@
   */
 #define CMD_INPUT_ACCESO_A		"ACCESO-A"
 #define CMD_INPUT_ACCESO_B		"ACCESO-B"
-#define CMD_INPUT_NO_AUTORIZADO	"NO-AUTORIZADO"
+#define CMD_INPUT_NO_AUTORIZADO	"ACCESO0"
 
 
 
@@ -177,8 +177,6 @@ void cmdDataPoll(void){
 		break;
 
 	case CMD_PROCESS:
-
-		// _TODO SI NO ESTOY ESPERANDO RESPUESTA: IR A currentSt = CMD_DISMISS;
 
 		_addNullToInputStr();
 		_inputCmdToLowerCase();

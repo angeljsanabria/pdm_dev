@@ -68,6 +68,7 @@ void BSP_LED_On(uint8_t led)
             break;
         case BSP_LED5:
             HAL_GPIO_WritePin(BSP_LED5_PORT, BSP_LED5_PIN, GPIO_PIN_SET);
+            break;
         case BSP_LED6:
         	HAL_GPIO_WritePin(BSP_LED6_PORT, BSP_LED6_PIN, GPIO_PIN_SET);
             break;

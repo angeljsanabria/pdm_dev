@@ -10,11 +10,11 @@
 #include <stdio.h>
 #include "string.h"
 
-#define TEST_UART_MSG	"INICIADO"
+#define TEST_UART_MSG	"ACCESO INICIADO"
 /**
   * @brief Handler de UART3 - usada para datos
   */
-UART_HandleTypeDef huart3;
+static UART_HandleTypeDef huart3;
 
 bool_t API_uart_data_init(void)
 {

@@ -10,7 +10,7 @@
 
 // Dejo la variable privada, y hago un getter
 
-I2C_HandleTypeDef hi2c1;
+static I2C_HandleTypeDef hi2c1;
 
 
 void I2C1_Init(void)		// Pasar a la API

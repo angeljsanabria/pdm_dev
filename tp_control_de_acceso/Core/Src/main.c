@@ -46,7 +46,6 @@ return len;
 
 
 
-extern UART_HandleTypeDef huart3;
 /**
   * @brief  The application entry point.
   * @retval int

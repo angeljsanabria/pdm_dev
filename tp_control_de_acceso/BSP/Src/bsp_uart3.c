@@ -10,7 +10,6 @@
 #include "bsp_uart3.h"
 #include "main.h"
 
-extern UART_HandleTypeDef huart3;
 
 static void usart3_MspInit(UART_HandleTypeDef *huart)
 {

@@ -68,7 +68,7 @@ void uartSendCardToAuthorize(uint8_t *card, uint16_t size);
 
 
 /**
- * @brief	Mensaje de testing
+ * @brief	Mensaje de testing/inicio
  * @param
  * @param
  */

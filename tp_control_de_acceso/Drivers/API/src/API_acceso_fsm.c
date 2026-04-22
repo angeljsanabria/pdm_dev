@@ -12,6 +12,11 @@
 #include "API_uart_data.h"
 #include "bsp_button.h"
 
+enum accesso_pendiente{
+	_no_esperando 			= 0,
+	_esperando_autorizacion	= 1,
+};
+
 /*
  * Estructura principal de control del acceso
  */
@@ -38,7 +43,7 @@ void acceso_FSM_update(void)
 	case ACCESO_FSM_INIT:
 		if (!delayIsRunning(&acceso.delay_fsm)) {
 			acceso.retry_count = 0;
-			acceso.pending_authorization = 0;
+			acceso.pending_authorization = _no_esperando;
 			acceso.exe_authorization = ACCESO_EXEC_PENDIENTE;
 			acceso.valid_card = 0;
 			acceso.len_card = 0;
@@ -87,16 +92,16 @@ void acceso_FSM_update(void)
 		if (!delayIsRunning(&acceso.delay_fsm)) {
 			acceso.lastStNFC = PN532_polling_send();
 			if (acceso.lastStNFC != PN532_OK) {
-				acceso.st_actual = ACCESO_FSM_EXEC_ERROR_LED_SEQ;
+				acceso.st_actual = ACCESO_FSM_IDLE;
 				break;
 			}
 			acceso.retry_count = 0;
-			delayInit(&acceso.delay_fsm, 500);
+			delayInit(&acceso.delay_fsm, ACCESO_DELAY_DEFAULT);
 			acceso.st_actual = ACCESO_FSM_POLL_READ_ACK;
 		}
 		break;
 
-	case ACCESO_FSM_POLL_READ_ACK: {
+	case ACCESO_FSM_POLL_READ_ACK:
 		uint8_t irq_ack;
 
 		irq_ack = BSP_Button_Read();
@@ -104,29 +109,27 @@ void acceso_FSM_update(void)
 			acceso.lastStNFC = PN532_read_ack();
 			if (acceso.lastStNFC == PN532_OK) {
 				acceso.retry_count = 0;
-				delayInit(&acceso.delay_fsm, 500);
+				delayInit(&acceso.delay_fsm, ACCESO_DELAY_DEFAULT);
 				acceso.st_actual = ACCESO_FSM_PROCESS_AND_VALIDATE_DATA;
 			} else {
 				acceso.retry_count++;
 				if (acceso.retry_count <= ACCESO_MAX_RETRIES) {
-					delayInit(&acceso.delay_fsm, 200);
+					delayInit(&acceso.delay_fsm, ACCESO_DELAY_TINY_DEFAULT);
 				} else {
 					acceso.retry_count = 0;
-					acceso.st_actual = ACCESO_FSM_EXEC_ERROR_LED_SEQ;
+					acceso.st_actual = ACCESO_FSM_IDLE;
 				}
 			}
 		}
-	}
 		break;
 
-	case ACCESO_FSM_PROCESS_AND_VALIDATE_DATA: {
+	case ACCESO_FSM_PROCESS_AND_VALIDATE_DATA:
 		uint8_t irq_in;
 
 		irq_in = BSP_Button_Read();
 		if ((delayRead(&acceso.delay_fsm) != 0) || (irq_in == 0)) {
 			acceso.lastStNFC = PN532_read_inlist_response();
 			if (acceso.lastStNFC == PN532_OK) {
-				/* out_cap = tamano del buffer destino, no la longitud del UID en bytes */
 				acceso.lastStNFC = PN532_save_read_uid_hex(
 				    acceso.value_card,
 				    (uint8_t)sizeof(acceso.value_card));
@@ -139,7 +142,7 @@ void acceso_FSM_update(void)
 				} else {
 					acceso.valid_card = 0;
 					acceso.len_card = 0;
-					acceso.st_actual = ACCESO_FSM_EXEC_ERROR_LED_SEQ;
+					acceso.st_actual = ACCESO_FSM_IDLE;
 				}
 			} else if (acceso.lastStNFC == PN532_ERR_NO_CARD) {
 				acceso.valid_card = 0;
@@ -152,14 +155,13 @@ void acceso_FSM_update(void)
 			}
 		}
 		break;
-	}
 
 	case ACCESO_FSM_SENT_TO_AUTHORIZER:
 
 		if(acceso.valid_card == 0){
 			acceso.st_actual = ACCESO_FSM_EXEC_ERROR_LED_SEQ;
 		}
-		acceso.pending_authorization = 1;
+		acceso.pending_authorization = _esperando_autorizacion;
 		acceso.exe_authorization = ACCESO_EXEC_PENDIENTE;
 		uartSendCardToAuthorize(acceso.value_card, (uint16_t)acceso.len_card);
 		delayInit(&acceso.delay_fsm, ACCESO_DELAY_DEFAULT);
@@ -186,9 +188,9 @@ void acceso_FSM_update(void)
 
 	case ACCESO_FSM_EXEC_ACCESO:
 		if (!delayIsRunning(&acceso.delay_fsm)) {
-			acceso.pending_authorization = 0;
+			acceso.pending_authorization = _no_esperando;
 			acceso.retry_count = 0;
-			delayWrite(&acceso.delay_fsm, 3000);
+			delayWrite(&acceso.delay_fsm, ACCESO_DELAY_EXECUTE);
 			if(acceso.exe_authorization == ACCESO_EXEC_ACCESO_A){
 				acceso_A_abrir();
 			}else if(acceso.exe_authorization == ACCESO_EXEC_ACCESO_B){
@@ -211,7 +213,7 @@ void acceso_FSM_update(void)
 			HAL_Delay(50);
 		}
 
-		acceso.pending_authorization = 0;
+		acceso.pending_authorization = _no_esperando;
 		acceso.retry_count = 0;
 		acceso.st_actual = ACCESO_FSM_IDLE;
 		break;

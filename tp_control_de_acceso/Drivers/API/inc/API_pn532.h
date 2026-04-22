@@ -67,6 +67,9 @@ typedef struct {
     uint8_t  read_mode;
 } PN532_Handler_t;
 
+/**
+  * @brief 	Estados de retorno de las funciones de PN532
+  */
 typedef enum {
     PN532_OK = 0,
     PN532_ERR_NO_CARD,
@@ -121,8 +124,8 @@ PN532_Status_t PN532_read_inlist_response(void);
 
 /**
   * @brief 	Ultimo UID como texto hex ASCII mayusculas contiguo (p. ej. 4 bytes UID -> 8 caracteres + NUL).
-  * @param 	out Buffer destino (string C).
-  * @param 	out_cap Capacidad del buffer out en bytes (incluye el NUL). No es uid_len ni len_card UART.
+  * @param 	out Buffer destino
+  * @param 	out_cap Length del buffer out en bytes (incluye el NUL). No es uid_len ni len_card UART.
   * @retval PN532_OK si cabe y uid_len soportado; PN532_ERR_OTRO si buffer chico o uid_len distinto de 4.
   */
 PN532_Status_t PN532_save_read_uid_hex(uint8_t *out, uint8_t out_cap);

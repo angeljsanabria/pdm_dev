@@ -42,6 +42,7 @@ void BSP_Init(void)
     /* Initialize Button */
     BSP_Button_Init();
 
+    /* I2C y UART se incian desde fuera. */
 
     return;
 }

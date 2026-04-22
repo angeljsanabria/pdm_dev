@@ -71,13 +71,6 @@ int main(void)
     (void)API_uart_data_init();
     (void)I2C1_Init();
 
-//	if(!API_uart_data_init()){
-//		printf("Falla en inicio de UART\r\n");
-//		while(1);
-//	}
-
-	API_uart_data_test();
-	API_uart_data_test();
 	API_uart_data_test();
 
 	/* Inicilizo FSM de UART*/

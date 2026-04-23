@@ -9,6 +9,25 @@
 #include <string.h>
 #include "API_i2c_1.h"
 
+/**
+  * @brief 	estructura principal de control del modulo PN532
+  *
+  * @param 	i2c_addr_hal - Direccion I2C en formato  con shift
+  * @param 	op_timeout_ms - Timeout maximo de operaciones con el PN532 (ms).
+  * @param 	card_present- Indica si hay tarjeta/tag detectado.
+  * @param 	uid_len - Cantidad de bytes validos del UID.
+  * @param 	uid - Almacena el UID del tag (hasta PN532_MAX_UID_BUFFER bytes)
+  */
+typedef struct {
+    uint16_t i2c_addr_hal;
+    uint32_t op_timeout_ms;
+    bool     card_present;
+    uint8_t  uid_len;
+    uint8_t  uid[PN532_MAX_UID_BUFFER];
+    uint8_t  read_mode;
+} PN532_Handler_t;
+
+
 /*
  * SAMConfiguration minima (0x14, modo Normal 0x01). Trama completa minima.
  */

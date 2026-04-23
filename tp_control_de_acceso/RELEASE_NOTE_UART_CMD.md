@@ -41,3 +41,53 @@
 Handler global: **`UART_HandleTypeDef huart3`** (definido en `API_uart_data.c`). GPIO y reloj: **`bsp_uart3.c`** / **`bsp_uart3.h`**.
 
 ---
+
+
+
+
+angel-dev@192 tp_control_de_acceso % tree -L 4 -C
+.
+├── BSP
+│   ├── Inc
+│   │   ├── bsp.h
+│   │   ├── bsp_button.h
+│   │   ├── bsp_i2c1.h
+│   │   ├── bsp_leds.h
+│   │   └── bsp_uart3.h
+│   └── Src
+│       ├── bsp.c
+│       ├── bsp_button.c
+│       ├── bsp_i2c1.c
+│       ├── bsp_leds.c
+│       └── bsp_uart3.c
+├── Core
+│   ├── Inc
+│   │   ├── main.h
+│   │   ├── stm32l4xx_hal_conf.h
+│   │   └── stm32l4xx_it.h
+│   ├── Src
+│   │   ├── main.c
+│   │   ├── stm32l4xx_hal_msp.c
+│   │   ├── stm32l4xx_it.c
+│   │   ├── syscalls.c
+│   │   └── sysmem.c
+├── Drivers
+│   ├── API
+│   │   ├── inc
+│   │   │   ├── API_acceso_fsm.h
+│   │   │   ├── API_accesos_output.h
+│   │   │   ├── API_cmd_data_parser.h
+│   │   │   ├── API_debounce.h
+│   │   │   ├── API_delay.h
+│   │   │   ├── API_i2c_1.h
+│   │   │   ├── API_pn532.h
+│   │   │   └── API_uart_data.h
+│   │   └── src
+│   │       ├── API_acceso_fsm.c
+│   │       ├── API_accesos_output.c
+│   │       ├── API_cmd_data_parser.c
+│   │       ├── API_delay.c
+│   │       ├── API_i2c_1.c
+│   │       ├── API_pn532.c
+│   │       └── API_uart_data.c
+

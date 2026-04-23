@@ -17,6 +17,8 @@
   */
 
 #include <API_accesos_output.h>
+#include <APP_acceso_fsm.h>
+#include <APP_cmd_data_parser.h>
 #include "main.h"
 #include "stdio.h"
 #include <stdint.h>
@@ -25,10 +27,8 @@
 #include "bsp.h"
 #include "clock_config.h"
 #include "API_uart_data.h"
-#include "API_cmd_data_parser.h"
 #include "API_uart_data.h"
 #include "API_i2c_1.h"
-#include "API_acceso_fsm.h"
 
 /**
  * @brief Definiciones de patrones y repeticiones de cada uno
